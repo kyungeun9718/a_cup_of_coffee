@@ -8,6 +8,7 @@ import { ProductModule } from './domain/product/product.module';
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({ useFactory: ormConfig }),
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],
