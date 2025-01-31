@@ -8,9 +8,9 @@ productNo: string;
 @PrimaryColumn({name: 'SHAPE_NAME', type: 'varchar',length:20})
 shapeName: string;
 
-@PrimaryColumn({name: 'INST_DTM', type: 'timestamp',default: () => 'CURRENT_TIMESTAMP' })
+@PrimaryColumn({name: 'INST_DTM', type: 'datetime',default: () => 'CURRENT_TIMESTAMP' })
 instDtm: Date;
 
-@PrimaryColumn({name: 'UPDT_DTM', type: 'timestamp'})
+@Column({name: 'UPDT_DTM', type: 'datetime', nullable: true})
 updtDtm: Date;
 }

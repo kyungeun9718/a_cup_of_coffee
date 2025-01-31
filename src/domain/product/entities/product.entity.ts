@@ -23,9 +23,9 @@ totalPrice: number;
 @PrimaryColumn({name: 'COFFEE_PRICE', type: 'int'})
 coffeePrice: number;
 
-@PrimaryColumn({name: 'INST_DTM', type: 'timestamp',default: () => 'CURRENT_TIMESTAMP' })
+@PrimaryColumn({name: 'INST_DTM', type: 'datetime',default: () => 'CURRENT_TIMESTAMP' })
 instDtm: Date;
 
-@PrimaryColumn({name: 'UPDT_DTM', type: 'timestamp'})
+@Column({name: 'UPDT_DTM', type: 'datetime', nullable: true})
 updtDtm: Date;
 }

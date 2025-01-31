@@ -42,64 +42,94 @@ export class ProductService {
 
     @InjectRepository(ProductFace)
     private readonly productFaceRepository: Repository<ProductFace>,
-  ) {}
-  
+  ) { }
+
   async findOptimalProduct(memberNo: string) {
-    const shapeNo = await this.findOptimalValue(
-      'SHAPE_NO',
-      this.productShapeRepository,
-      memberNo,
-    );
-    const colorNo = await this.findOptimalValue(
-      'COLOR_NO',
-      this.productColorRepository,
-      memberNo,
-    );
-    const faceNo = await this.findOptimalValue(
-      'FACE_NO',
-      this.productFaceRepository,
-      memberNo,
-    );
-
-    return { shapeNo, colorNo, faceNo };
-  }
-
-  private async findOptimalValue(
-    column: string,
-    repository: Repository<any>,
-    memberNo: string,
-  ): Promise<any> {
-    // 1. 특정 MEMBER_NO가 가진 값 목록 가져오기
-    const usedValues = await this.myProductRepository
-      .createQueryBuilder('Product')
-      .select(`Product.${column}`)
-      .where(`Product.memberNo = :memberNo`, { memberNo })
+    // 1. TB_MY_PRODUCT에서 현재 사용자의 shape_no, color_no, face_no 가져오기
+    const myProducts = await this.myProductRepository
+      .createQueryBuilder('product')
+      .select(['product.SHAPE_NO', 'product.COLOR_NO', 'product.FACE_NO'])
+      .where('product.MEMBER_NO = :memberNo', { memberNo })
       .getRawMany();
 
-      console.log(usedValues.toString);
+    // 2. 현재 보유한 SHAPE_NO, COLOR_NO, FACE_NO 리스트 추출
+    const existingShapeNos = myProducts.map((p) => p.SHAPE_NO).filter((s) => s !== '');
+    const existingColorNos = myProducts.map((p) => p.COLOR_NO).filter((c) => c !== '');
+    const existingFaceNos = myProducts.map((p) => p.FACE_NO).filter((f) => f !== '');
 
-    const usedValueNos = usedValues.map((row) => row[column]);
-
-    // 2. 사용되지 않은 값이 있는 경우 랜덤으로 하나 가져오기
-    const unusedValue = await repository
-      .createQueryBuilder('entity')
-      .where(`entity.${column} NOT IN (:...usedValueNos)`, { usedValueNos })
-      .orderBy('RAND()')
-      .getOne();
-
-    if (unusedValue) {
-      return unusedValue[column];
+    // 3. SHAPE_NO가 NULL이면 랜덤 선택
+    let shape = null;
+    if (existingShapeNos.length === 0) {
+      console.log('existingShapeNos    :  ' + existingShapeNos.length);
+      shape = await this.productShapeRepository
+        .createQueryBuilder('shape')
+        .orderBy('RAND()')
+        .getOne();
+    } else {
+      shape = await this.productShapeRepository
+        .createQueryBuilder('shape')
+        .where('shape.SHAPE_NO NOT IN (:...existingShapeNos)', { existingShapeNos })
+        .orderBy('RAND()')
+        .getOne();
+      // 조회 결과가 없을 경우 다시 랜덤 조회
+      if (!shape) {
+        shape = await this.productShapeRepository
+          .createQueryBuilder('shape')
+          .orderBy('RAND()')
+          .getOne();
+      }
     }
 
-    // 3. 모든 값이 사용된 경우, 가장 적게 사용된 값 가져오기
-    const leastUsedValue = await this.myProductRepository
-      .createQueryBuilder('myProduct')
-      .select(`myProduct.${column}`)
-      .groupBy(`myProduct.${column}`)
-      .orderBy('COUNT(myProduct.productNo)', 'ASC')
-      .limit(1)
-      .getRawOne();
+    // 4. COLOR_NO가 NULL이면 랜덤 선택
+    let color = null;
+    console.log('existingColorNos.length ' + existingColorNos.length);
+    if (existingColorNos.length === 0) {
+      console.log('existingColorNos.length in' + existingColorNos.length);
+      color = await this.productColorRepository
+        .createQueryBuilder('color')
+        .orderBy('RAND()')
+        .getOne();
+    } else {
+      color = await this.productColorRepository
+        .createQueryBuilder('color')
+        .where('color.COLOR_NO NOT IN (:...existingColorNos)', { existingColorNos })
+        .orderBy('RAND()')
+        .getOne();
+      // 조회 결과가 없을 경우 다시 랜덤 조회
+      if (!color) {
+        color = await this.productColorRepository
+          .createQueryBuilder('color')
+          .orderBy('RAND()')
+          .getOne();
+      }
+    }
 
-    return leastUsedValue ? leastUsedValue[column] : null;
+    // 5. FACE_NO가 NULL이면 랜덤 선택
+    let face = null;
+    if (existingFaceNos.length === 0) {
+      face = await this.productFaceRepository
+        .createQueryBuilder('face')
+        .orderBy('RAND()')
+        .getOne();
+    } else {
+      face = await this.productFaceRepository
+        .createQueryBuilder('face')
+        .where('face.FACE_NO NOT IN (:...existingFaceNos)', { existingFaceNos })
+        .orderBy('RAND()')
+        .getOne();
+      // 조회 결과가 없을 경우 다시 랜덤 조회
+      if (!face) {
+        face = await this.productFaceRepository
+          .createQueryBuilder('face')
+          .orderBy('RAND()')
+          .getOne();
+      }
+    }
+
+    return {
+      shape: shape?.productNo || '',
+      color: color?.productNo || '',
+      face: face?.productNo || '',
+    };
   }
 }
