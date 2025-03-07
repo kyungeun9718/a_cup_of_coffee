@@ -32,9 +32,9 @@ export class ProductController {
     return this.productService.remove(+id);
   }
 
-  @Get('optimal/:memberNo')
-  async getOptimalProduct(@Param('memberNo') memberNo: string) {
-    return await this.productService.findOptimalProduct(memberNo);
+  @Get('optimal/:deviceToken')
+  async getOptimalProduct(@Param('deviceToken') deviceToken: string) {
+    return await this.productService.findOptimalProduct(deviceToken);
   }
   
 }
