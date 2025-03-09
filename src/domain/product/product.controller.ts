@@ -9,6 +9,7 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Get('optimal/:deviceToken')
+  @ApiOperation({ summary: '새로운 제품 모양,색깔,표정 전달', description: '캐릭터의 모양, 색깔, 표정을 랜덤으로 값 전달합니다.' })
   async getOptimalProduct(@Param('deviceToken') deviceToken: string) {
     return await this.productService.findOptimalProduct(deviceToken);
   }
