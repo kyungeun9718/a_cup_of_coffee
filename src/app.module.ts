@@ -4,12 +4,14 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 // import { ormConfig } from './orm.config';
 import { ProductModule } from './domain/product/product.module';
+import { SwaggerDBModule } from './domain/swaggerDB/swaggerDB.module';
 import { ConfigModule } from '@nestjs/config'
 import { ProductFace } from './domain/product/entities/product-face.entity';
 import { ProductShape } from './domain/product/entities/product-shape.entity';
 import { ProductColor } from './domain/product/entities/product-color.entity';
 import { Product } from './domain/product/entities/product.entity';
 import { Member } from './domain/member/entities/member.entity';
+import { SwaggerModule } from '@nestjs/swagger';
 
 @Module({
   imports: [
@@ -31,7 +33,7 @@ import { Member } from './domain/member/entities/member.entity';
       synchronize: true,
       entities: [Product, ProductFace, ProductShape, ProductColor, Member],}),
 //    TypeOrmModule.forRootAsync({ useFactory: ormConfig }),
-    ProductModule,
+    ProductModule,SwaggerDBModule,
   ],
   controllers: [AppController],
   providers: [AppService],
