@@ -17,6 +17,9 @@ colorNo: string;
 @PrimaryColumn({name: 'FACE_NO', type: 'varchar',length:20})
 faceNo: string;
 
+@PrimaryColumn({name: 'PRODUCT_NAME', type: 'varchar',length:20})
+productName: string;
+
 @PrimaryColumn({name: 'TOTAL_PRICE', type: 'int'})
 totalPrice: number;
 

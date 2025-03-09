@@ -36,5 +36,25 @@ export class ProductController {
   async getOptimalProduct(@Param('deviceToken') deviceToken: string) {
     return await this.productService.findOptimalProduct(deviceToken);
   }
+  @Post('insertMyProduct')
+  async insertMyProduct(
+    @Body('memberNo') memberNo: string,
+    @Body('shapeNo') shapeNo: string,
+    @Body('colorNo') colorNo: string,
+    @Body('faceNo') faceNo: string,
+    @Body('productName') productName: string,
+    @Body('totalPrice') totalPrice: number,
+    @Body('coffeePrice') coffeePrice: number,
+  ) {
+    return await this.productService.insertMyProduct(
+      memberNo,
+      shapeNo,
+      colorNo,
+      faceNo,
+      productName,
+      totalPrice,
+      coffeePrice,
+    );
+  }
   
 }

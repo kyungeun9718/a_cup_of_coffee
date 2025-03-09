@@ -159,10 +159,36 @@ export class ProductService {
 
       return {
         memberNo,
-        shape: shape?.productNo || '',
-        color: color?.productNo || '',
-        face: face?.productNo || '',
+        shapeNo: shape?.productNo || '',
+        colorNo: color?.productNo || '',
+        faceNo: face?.productNo || '',
       };
     });
+  }
+  async insertMyProduct(
+    memberNo: string,
+    shapeNo: string,
+    colorNo: string,
+    faceNo: string,
+    productName: string,
+    totalPrice: number,
+    coffeePrice: number,
+  ): Promise<Product> {
+    const now = new Date();
+    const productNo = now.toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
+
+    const newProduct = this.myProductRepository.create({
+      productNo,
+      memberNo,
+      shapeNo,
+      colorNo,
+      faceNo,
+      productName,
+      totalPrice,
+      coffeePrice,
+      instDtm: new Date(),
+    });
+
+    return await this.myProductRepository.save(newProduct);
   }
 }
