@@ -1,59 +1,29 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
-
-  @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.productService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productService.update(+id, updateProductDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productService.remove(+id);
-  }
 
   @Get('optimal/:deviceToken')
   async getOptimalProduct(@Param('deviceToken') deviceToken: string) {
     return await this.productService.findOptimalProduct(deviceToken);
   }
   @Post('insertMyProduct')
-  async insertMyProduct(
-    @Body('memberNo') memberNo: string,
-    @Body('shapeNo') shapeNo: string,
-    @Body('colorNo') colorNo: string,
-    @Body('faceNo') faceNo: string,
-    @Body('productName') productName: string,
-    @Body('totalPrice') totalPrice: number,
-    @Body('coffeePrice') coffeePrice: number,
-  ) {
+  @ApiOperation({ summary: '새로운 제품 추가', description: 'TB_MY_PRODUCT에 새 제품을 추가합니다.' })
+  @ApiResponse({ status: 201, description: '성공적으로 제품이 추가됨' })
+  @ApiResponse({ status: 400, description: '잘못된 요청 데이터' })
+  async insertMyProduct(@Body() createProductDto: CreateProductDto) {
     return await this.productService.insertMyProduct(
-      memberNo,
-      shapeNo,
-      colorNo,
-      faceNo,
-      productName,
-      totalPrice,
-      coffeePrice,
+      createProductDto.memberNo,
+      createProductDto.shapeNo,
+      createProductDto.colorNo,
+      createProductDto.faceNo,
+      createProductDto.productName,
+      createProductDto.totalPrice,
+      createProductDto.coffeePrice,
     );
   }
   

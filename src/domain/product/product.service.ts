@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { ProductShape } from './entities/product-shape.entity';
 import { ProductColor } from './entities/product-color.entity';
@@ -12,25 +11,6 @@ import { MoreThanOrEqual } from 'typeorm';
 
 @Injectable()
 export class ProductService {
-  create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
-  }
-
-  findAll() {
-    return `This action returns all product`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
-  }
-
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} product`;
-  }
 
   constructor(
 
@@ -165,6 +145,10 @@ export class ProductService {
       };
     });
   }
+
+    /**
+   * 내 제품 등록
+   */
   async insertMyProduct(
     memberNo: string,
     shapeNo: string,
@@ -174,6 +158,11 @@ export class ProductService {
     totalPrice: number,
     coffeePrice: number,
   ): Promise<Product> {
+
+    this.validatePrice(totalPrice, coffeePrice);
+
+    await this.validateProductInput(memberNo, shapeNo, colorNo, faceNo);
+
     const now = new Date();
     const productNo = now.toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
 
@@ -191,4 +180,40 @@ export class ProductService {
 
     return await this.myProductRepository.save(newProduct);
   }
+
+  //총 가격과 요청한 커피 가격 비교
+  private validatePrice(totalPrice: number, coffeePrice: number) {
+    if (coffeePrice > totalPrice) {
+      throw new BadRequestException('커피 가격은 총 가격보다 클 수 없습니다.');
+    }
+  }
+
+  //DB값 존재하는지 확인
+  private async validateProductInput(
+    memberNo: string,
+    shapeNo: string,
+    colorNo: string,
+    faceNo: string,
+  ) {
+    const memberExists = await this.memberRepository.findOne({ where: { memberNo } });
+    if (!memberExists) {
+      throw new BadRequestException(`회원 번호(${memberNo})가 존재하지 않습니다.`);
+    }
+
+    const shapeExists = await this.productShapeRepository.findOne({ where: { productNo: shapeNo } });
+    if (!shapeExists) {
+      throw new BadRequestException(`Shape 번호(${shapeNo})가 존재하지 않습니다.`);
+    }
+
+    const colorExists = await this.productColorRepository.findOne({ where: { productNo: colorNo } });
+    if (!colorExists) {
+      throw new BadRequestException(`Color 번호(${colorNo})가 존재하지 않습니다.`);
+    }
+
+    const faceExists = await this.productFaceRepository.findOne({ where: { productNo: faceNo } });
+    if (!faceExists) {
+      throw new BadRequestException(`Face 번호(${faceNo})가 존재하지 않습니다.`);
+    }
+  }
+
 }
