@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam} from '@nestjs/swagger';
 
 @ApiTags('Product')
 @Controller('product')
@@ -59,4 +59,25 @@ export class ProductController {
 
     return await this.productService.getProductsByMemberNo(memberNo, includeCompletedBool, searchTerm);
   }
+
+  @Get('getProductNo/:productNo')
+  @ApiOperation({ summary: '제품 조회', description: 'product_no를 전달 받아 제품 정보를 조회합니다.' })
+  @ApiParam({ name: 'productNo', required: true})
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    schema: {
+      example: {
+        product_name: '노트북',
+        inst_dtm: '2025/02/01',
+        today: '2025/04/30',
+        cup: 9.7,
+        total_cup: 10,
+      },
+    },
+  })
+  async getProductDetails(@Param('productNo') productNo: string) {
+    return await this.productService.getProductNo(productNo);
+  }
+
 }

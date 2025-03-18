@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { Product } from './entities/product.entity';
 import { ProductShape } from './entities/product-shape.entity';
@@ -147,9 +147,9 @@ export class ProductService {
     });
   }
 
-    /**
-   * 내 제품 등록
-   */
+  /**
+ * 내 제품 등록
+ */
   async insertMyProduct(
     memberNo: string,
     shapeNo: string,
@@ -217,10 +217,10 @@ export class ProductService {
     }
   }
 
-   /**
-   * 내 제품 조회
-   */
-   async getProductsByMemberNo(memberNo: string, includeCompleted: boolean= false,searchTerm?: string,): Promise<any> {
+  /**
+  * 내 제품 조회
+  */
+  async getProductsByMemberNo(memberNo: string, includeCompleted: boolean = false, searchTerm?: string,): Promise<any> {
 
     // 1️. 데이터 조회
     const products = await this.getSortedProducts(memberNo, searchTerm);
@@ -238,7 +238,7 @@ export class ProductService {
   private mapProductWithCup(product: Product) {
     const totalCup = this.calculateTotalCup(product);
     const cup = this.calculateCurrentCup(product);
-  
+
     return {
       product_no: product.productNo,
       shape_no: product.shapeNo,
@@ -250,51 +250,51 @@ export class ProductService {
       completed: this.isCompleted(cup, totalCup),
     };
   }
-  
+
   // `PRODUCT_NAME` 기준으로 오름차순 정렬하여 데이터 조회
   private async getSortedProducts(memberNo: string, searchTerm?: string): Promise<Product[]> {
     let query = this.myProductRepository
-    .createQueryBuilder('product')
-    .select([
-      'product.productNo',
-      'product.shapeNo',
-      'product.colorNo',
-      'product.faceNo',
-      'product.productName',
-      'product.totalPrice',
-      'product.coffeePrice',
-      'product.instDtm',
-    ])
-    .where('product.memberNo = :memberNo', { memberNo });
+      .createQueryBuilder('product')
+      .select([
+        'product.productNo',
+        'product.shapeNo',
+        'product.colorNo',
+        'product.faceNo',
+        'product.productName',
+        'product.totalPrice',
+        'product.coffeePrice',
+        'product.instDtm',
+      ])
+      .where('product.memberNo = :memberNo', { memberNo });
 
     if (searchTerm) {
       // 예시로 fn_choSearch를 사용하여 초성 변환된 값이 chosungTerm에 할당되어야 합니다
-const chosungTerm = getChosung(searchTerm); // getChosung을 사용하여 초성 변환
+      const chosungTerm = getChosung(searchTerm); // getChosung을 사용하여 초성 변환
 
-    // 초성 검색을 위해 fn_choSearch 사용
-    query = query.andWhere(
-      new Brackets(qb => {
-        qb.where('product.productName LIKE :searchTerm COLLATE utf8mb4_unicode_ci', { searchTerm: `%${searchTerm}%` }) // 일반 검색
-          .orWhere('fn_choSearch(product.productName) LIKE :chosungTerm COLLATE utf8mb4_unicode_ci', { chosungTerm: `${chosungTerm}%` }) // 초성 검색
-          .orWhere('SUBSTRING(product.productName, 1, 1) = :searchFirstChar COLLATE utf8mb4_unicode_ci', { searchFirstChar: searchTerm.charAt(0) }); // 첫 글자 검색
-      })
-        
-    );
+      // 초성 검색을 위해 fn_choSearch 사용
+      query = query.andWhere(
+        new Brackets(qb => {
+          qb.where('product.productName LIKE :searchTerm COLLATE utf8mb4_unicode_ci', { searchTerm: `%${searchTerm}%` }) // 일반 검색
+            .orWhere('fn_choSearch(product.productName) LIKE :chosungTerm COLLATE utf8mb4_unicode_ci', { chosungTerm: `${chosungTerm}%` }) // 초성 검색
+            .orWhere('SUBSTRING(product.productName, 1, 1) = :searchFirstChar COLLATE utf8mb4_unicode_ci', { searchFirstChar: searchTerm.charAt(0) }); // 첫 글자 검색
+        })
+
+      );
     }
 
-  return await query.orderBy('product.productName', 'ASC').getMany();
-}
+    return await query.orderBy('product.productName', 'ASC').getMany();
+  }
 
   //`Cup` 및 `total_cup` 계산 메서드
   private calculateCupValues(product: Product) {
     const now = new Date();
     const instDate = new Date(product.instDtm);
-  
+
     const daysSinceInst = ((now.getTime() - instDate.getTime()) / (1000 * 60 * 60 * 24));
     const formattedCup = Math.floor(daysSinceInst * 10) / 10;
-  
+
     const totalCup = Math.ceil(product.totalPrice / product.coffeePrice);
-  
+
     return {
       product_no: product.productNo,
       shape_no: product.shapeNo,
@@ -304,24 +304,67 @@ const chosungTerm = getChosung(searchTerm); // getChosung을 사용하여 초성
       cup: formattedCup,
       total_cup: totalCup,
     };
-  
+
   }
   //cup값 계산
-private calculateCurrentCup(product: Product): number {
-  const now = new Date();
-  const instDate = new Date(product.instDtm);
+  private calculateCurrentCup(product: Product): number {
+    const now = new Date();
+    const instDate = new Date(product.instDtm);
 
-  const daysSinceInst = ((now.getTime() - instDate.getTime()) / (1000 * 60 * 60 * 24));
-  return Math.floor(daysSinceInst * 10) / 10;
-}
+    const daysSinceInst = ((now.getTime() - instDate.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.floor(daysSinceInst * 10) / 10;
+  }
 
-//total cup계산
-private calculateTotalCup(product: Product): number {
-  return Math.ceil(product.totalPrice / product.coffeePrice);
-}
+  //total cup계산
+  private calculateTotalCup(product: Product): number {
+    return Math.ceil(product.totalPrice / product.coffeePrice);
+  }
 
-//완료 여부 계산
-private isCompleted(cup: number, totalCup: number): boolean {
-  return cup >= totalCup;
-}
+  //완료 여부 계산
+  private isCompleted(cup: number, totalCup: number): boolean {
+    return cup >= totalCup;
+  }
+
+  /*
+  * 제품 prodcut_no로 조회
+  */
+  async getProductNo(productNo: string) {
+    // 1. 제품 조회
+    const product = await this.getProductByNo(productNo);
+
+    // 2. 날짜 포맷 변경
+    const formattedInstDtm = this.formatDate(product.instDtm);
+    const formattedToday = this.formatDate(new Date());
+
+    // 3.`cup` 및 `total_cup` 계산
+    const cup = this.calculateCurrentCup(product);
+    const totalCup = this.calculateTotalCup(product);
+
+    return {
+      productNo: product.productNo,
+      product_name: product.productName,
+      inst_dtm: formattedInstDtm,
+      today: formattedToday,
+      cup,
+      total_cup: totalCup,
+    };
+
+  }
+
+  private async getProductByNo(productNo: string): Promise<Product> {
+    const product = await this.myProductRepository.findOne({ where: { productNo } });
+    if (!product) {
+      throw new NotFoundException(`Product with productNo ${productNo} not found`);
+    }
+    return product;
+  }
+
+  //`YYYY/MM/DD` 형식으로 날짜 변환
+   
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // 1월은 0부터 시작
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}/${month}/${day}`;
+  }
 }
