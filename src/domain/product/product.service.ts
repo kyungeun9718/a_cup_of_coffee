@@ -5,9 +5,10 @@ import { ProductShape } from './entities/product-shape.entity';
 import { ProductColor } from './entities/product-color.entity';
 import { ProductFace } from './entities/product-face.entity';
 import { Member } from '.././member/entities/member.entity';
-import { EntityManager, Repository } from 'typeorm';
+import { Brackets, EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThanOrEqual } from 'typeorm';
+import { getChosung } from '../utils/chosungUtil';
 
 @Injectable()
 export class ProductService {
@@ -219,10 +220,10 @@ export class ProductService {
    /**
    * 내 제품 조회
    */
-   async getProductsByMemberNo(memberNo: string, includeCompleted: boolean= false): Promise<any> {
+   async getProductsByMemberNo(memberNo: string, includeCompleted: boolean= false,searchTerm?: string,): Promise<any> {
 
     // 1️. 데이터 조회
-    const products = await this.getSortedProducts(memberNo);
+    const products = await this.getSortedProducts(memberNo, searchTerm);
 
     // 2️. `Cup` 및 `total_cup` 계산
     let response = products.map((product) => this.mapProductWithCup(product));
@@ -251,23 +252,38 @@ export class ProductService {
   }
   
   // `PRODUCT_NAME` 기준으로 오름차순 정렬하여 데이터 조회
-  private async getSortedProducts(memberNo: string): Promise<Product[]> {
-    return await this.myProductRepository
-      .createQueryBuilder('product')
-      .select([
-        'product.productNo',
-        'product.shapeNo',
-        'product.colorNo',
-        'product.faceNo',
-        'product.productName',
-        'product.totalPrice',
-        'product.coffeePrice',
-        'product.instDtm',
-      ])
-      .where('product.memberNo = :memberNo', { memberNo })
-      .orderBy('product.productName', 'ASC')
-      .getMany();
-  }
+  private async getSortedProducts(memberNo: string, searchTerm?: string): Promise<Product[]> {
+    let query = this.myProductRepository
+    .createQueryBuilder('product')
+    .select([
+      'product.productNo',
+      'product.shapeNo',
+      'product.colorNo',
+      'product.faceNo',
+      'product.productName',
+      'product.totalPrice',
+      'product.coffeePrice',
+      'product.instDtm',
+    ])
+    .where('product.memberNo = :memberNo', { memberNo });
+
+    if (searchTerm) {
+      // 예시로 fn_choSearch를 사용하여 초성 변환된 값이 chosungTerm에 할당되어야 합니다
+const chosungTerm = getChosung(searchTerm); // getChosung을 사용하여 초성 변환
+
+    // 초성 검색을 위해 fn_choSearch 사용
+    query = query.andWhere(
+      new Brackets(qb => {
+        qb.where('product.productName LIKE :searchTerm COLLATE utf8mb4_unicode_ci', { searchTerm: `%${searchTerm}%` }) // 일반 검색
+          .orWhere('fn_choSearch(product.productName) LIKE :chosungTerm COLLATE utf8mb4_unicode_ci', { chosungTerm: `${chosungTerm}%` }) // 초성 검색
+          .orWhere('SUBSTRING(product.productName, 1, 1) = :searchFirstChar COLLATE utf8mb4_unicode_ci', { searchFirstChar: searchTerm.charAt(0) }); // 첫 글자 검색
+      })
+        
+    );
+    }
+
+  return await query.orderBy('product.productName', 'ASC').getMany();
+}
 
   //`Cup` 및 `total_cup` 계산 메서드
   private calculateCupValues(product: Product) {

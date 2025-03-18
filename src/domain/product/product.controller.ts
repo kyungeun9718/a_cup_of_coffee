@@ -32,6 +32,7 @@ export class ProductController {
   @ApiOperation({ summary: '회원 제품 조회', description: 'TB_MY_PRODUCT에서 특정 회원의 제품을 조회합니다.' })
   @ApiQuery({ name: 'memberNo', required: true, description: '회원 번호' })
   @ApiQuery({ name: 'includeCompleted', required: false, description: '완료된 제품 포함 여부 (기본값: false)' })
+  @ApiQuery({ name: 'searchTerm', required: false, description: '검색' })
   @ApiResponse({
     status: 200,
     description: '성공',
@@ -51,10 +52,11 @@ export class ProductController {
   })
   async getMyProducts(
     @Query('memberNo') memberNo: string,
-    @Query('includeCompleted') includeCompleted?: string, // '완료' 값 여부 확인
+    @Query('includeCompleted') includeCompleted?: string,
+    @Query('searchTerm') searchTerm?: string,
   ) {
     const includeCompletedBool = includeCompleted ? JSON.parse(includeCompleted.toLowerCase()) : false;
-     
-    return await this.productService.getProductsByMemberNo(memberNo, includeCompletedBool);
+
+    return await this.productService.getProductsByMemberNo(memberNo, includeCompletedBool, searchTerm);
   }
 }
