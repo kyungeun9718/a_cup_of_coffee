@@ -216,4 +216,96 @@ export class ProductService {
     }
   }
 
+   /**
+   * 내 제품 조회
+   */
+   async getProductsByMemberNo(memberNo: string, includeCompleted: boolean= false): Promise<any> {
+
+    // 1️. 데이터 조회
+    const products = await this.getSortedProducts(memberNo);
+
+    // 2️. `Cup` 및 `total_cup` 계산
+    let response = products.map((product) => this.mapProductWithCup(product));
+
+    // 3. 완료일 경우 값 제외
+    if (!includeCompleted) {
+      response = response.filter(product => !product.completed);
+    }
+    return response;
+  }
+
+  private mapProductWithCup(product: Product) {
+    const totalCup = this.calculateTotalCup(product);
+    const cup = this.calculateCurrentCup(product);
+  
+    return {
+      product_no: product.productNo,
+      shape_no: product.shapeNo,
+      color_no: product.colorNo,
+      face_no: product.faceNo,
+      product_name: product.productName,
+      cup: this.isCompleted(cup, totalCup) ? totalCup : cup,
+      total_cup: totalCup,
+      completed: this.isCompleted(cup, totalCup),
+    };
+  }
+  
+  // `PRODUCT_NAME` 기준으로 오름차순 정렬하여 데이터 조회
+  private async getSortedProducts(memberNo: string): Promise<Product[]> {
+    return await this.myProductRepository
+      .createQueryBuilder('product')
+      .select([
+        'product.productNo',
+        'product.shapeNo',
+        'product.colorNo',
+        'product.faceNo',
+        'product.productName',
+        'product.totalPrice',
+        'product.coffeePrice',
+        'product.instDtm',
+      ])
+      .where('product.memberNo = :memberNo', { memberNo })
+      .orderBy('product.productName', 'ASC')
+      .getMany();
+  }
+
+  //`Cup` 및 `total_cup` 계산 메서드
+  private calculateCupValues(product: Product) {
+    const now = new Date();
+    const instDate = new Date(product.instDtm);
+  
+    const daysSinceInst = ((now.getTime() - instDate.getTime()) / (1000 * 60 * 60 * 24));
+    const formattedCup = Math.floor(daysSinceInst * 10) / 10;
+  
+    const totalCup = Math.ceil(product.totalPrice / product.coffeePrice);
+  
+    return {
+      product_no: product.productNo,
+      shape_no: product.shapeNo,
+      color_no: product.colorNo,
+      face_no: product.faceNo,
+      product_name: product.productName,
+      cup: formattedCup,
+      total_cup: totalCup,
+    };
+  
+  }
+  //cup값 계산
+private calculateCurrentCup(product: Product): number {
+  const now = new Date();
+  const instDate = new Date(product.instDtm);
+
+  const daysSinceInst = ((now.getTime() - instDate.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.floor(daysSinceInst * 10) / 10;
+}
+
+//total cup계산
+private calculateTotalCup(product: Product): number {
+  return Math.ceil(product.totalPrice / product.coffeePrice);
+}
+
+//완료 여부 계산
+private isCompleted(cup: number, totalCup: number): boolean {
+  return cup >= totalCup;
+}
 }
