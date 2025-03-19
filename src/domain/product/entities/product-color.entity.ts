@@ -3,7 +3,7 @@ import { Entity, Column, PrimaryColumn } from "typeorm";
 @Entity({'name':'TB_PRODUCT_COLOR'})
 export class ProductColor {
 @PrimaryColumn({name: 'COLOR_NO', type: 'varchar',length:20})
-productNo: string;
+colorNo: string;
 
 @PrimaryColumn({name: 'COLOR_NAME', type: 'varchar',length:20})
 colorName: string;

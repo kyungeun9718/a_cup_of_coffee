@@ -176,6 +176,7 @@ export class ProductService {
       productName,
       totalPrice,
       coffeePrice,
+      buyDtm: new Date(),
       instDtm: new Date(),
     });
 
@@ -201,17 +202,17 @@ export class ProductService {
       throw new BadRequestException(`회원 번호(${memberNo})가 존재하지 않습니다.`);
     }
 
-    const shapeExists = await this.productShapeRepository.findOne({ where: { productNo: shapeNo } });
+    const shapeExists = await this.productShapeRepository.findOne({ where: { shapeNo: shapeNo } });
     if (!shapeExists) {
       throw new BadRequestException(`Shape 번호(${shapeNo})가 존재하지 않습니다.`);
     }
 
-    const colorExists = await this.productColorRepository.findOne({ where: { productNo: colorNo } });
+    const colorExists = await this.productColorRepository.findOne({ where: { colorNo: colorNo } });
     if (!colorExists) {
       throw new BadRequestException(`Color 번호(${colorNo})가 존재하지 않습니다.`);
     }
 
-    const faceExists = await this.productFaceRepository.findOne({ where: { productNo: faceNo } });
+    const faceExists = await this.productFaceRepository.findOne({ where: { faceNo: faceNo } });
     if (!faceExists) {
       throw new BadRequestException(`Face 번호(${faceNo})가 존재하지 않습니다.`);
     }
@@ -263,12 +264,11 @@ export class ProductService {
         'product.productName',
         'product.totalPrice',
         'product.coffeePrice',
-        'product.instDtm',
+        'product.buyDtm',
       ])
       .where('product.memberNo = :memberNo', { memberNo });
 
     if (searchTerm) {
-      // 예시로 fn_choSearch를 사용하여 초성 변환된 값이 chosungTerm에 할당되어야 합니다
       const chosungTerm = getChosung(searchTerm); // getChosung을 사용하여 초성 변환
 
       // 초성 검색을 위해 fn_choSearch 사용
@@ -285,33 +285,12 @@ export class ProductService {
     return await query.orderBy('product.productName', 'ASC').getMany();
   }
 
-  //`Cup` 및 `total_cup` 계산 메서드
-  private calculateCupValues(product: Product) {
-    const now = new Date();
-    const instDate = new Date(product.instDtm);
-
-    const daysSinceInst = ((now.getTime() - instDate.getTime()) / (1000 * 60 * 60 * 24));
-    const formattedCup = Math.floor(daysSinceInst * 10) / 10;
-
-    const totalCup = Math.ceil(product.totalPrice / product.coffeePrice);
-
-    return {
-      product_no: product.productNo,
-      shape_no: product.shapeNo,
-      color_no: product.colorNo,
-      face_no: product.faceNo,
-      product_name: product.productName,
-      cup: formattedCup,
-      total_cup: totalCup,
-    };
-
-  }
   //cup값 계산
   private calculateCurrentCup(product: Product): number {
     const now = new Date();
-    const instDate = new Date(product.instDtm);
+    const buyDate = new Date(product.buyDtm);
 
-    const daysSinceInst = ((now.getTime() - instDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysSinceInst = ((now.getTime() - buyDate.getTime()) / (1000 * 60 * 60 * 24));
     return Math.floor(daysSinceInst * 10) / 10;
   }
 
@@ -333,7 +312,7 @@ export class ProductService {
     const product = await this.getProductByNo(productNo);
 
     // 2. 날짜 포맷 변경
-    const formattedInstDtm = this.formatDate(product.instDtm);
+    const formattedInstDtm = this.formatDate(product.buyDtm);
     const formattedToday = this.formatDate(new Date());
 
     // 3.`cup` 및 `total_cup` 계산
@@ -343,7 +322,11 @@ export class ProductService {
     return {
       productNo: product.productNo,
       product_name: product.productName,
-      inst_dtm: formattedInstDtm,
+      shape_no : product.shapeNo,
+      color_no : product.colorNo,
+      face_no : product.faceNo,
+      total_price : product.totalPrice,
+      buy_dtm: formattedInstDtm,
       today: formattedToday,
       cup,
       total_cup: totalCup,
@@ -367,4 +350,104 @@ export class ProductService {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}/${month}/${day}`;
   }
+
+  /*
+  * 랜덤한 제품 모양, 색, 표정 조회
+  */
+  async getRandomAttributes() {
+    const shape = await this.getRandomEntity(this.productShapeRepository, 'shape');
+    const color = await this.getRandomEntity(this.productColorRepository, 'color');
+    const face = await this.getRandomEntity(this.productFaceRepository, 'face');
+
+    return {
+      shape_no: shape?.shapeNo || '',
+      color_no: color?.colorNo || '',
+      face_no: face?.faceNo || '',
+    };
+  }
+
+  private async getRandomEntity<T>(repository: Repository<T>, alias: string): Promise<T | null> {
+    return await repository.createQueryBuilder(alias).orderBy('RAND()').getOne();
+  }
+
+/*
+* 내 제품 상세 수정
+*/
+async updateMyProductDetail(
+  productNo: string,
+  shapeNo: string,
+  faceNo: string,
+  colorNo: string,
+  productName: string,
+  totalPrice: number,
+  buyDtm: string,
+): Promise<{ message: string; product_no: string; updated_fields: Partial<Product> }> {
+  
+  // 제품 조회 (존재 여부 확인)
+  await this.getProductByNo(productNo);
+
+  const updateFields: Partial<Product> = {
+    shapeNo,
+    faceNo,
+    colorNo,
+    productName,
+    totalPrice,
+    buyDtm: buyDtm ? new Date(buyDtm) : new Date(), 
+    updtDtm: new Date(),
+  };
+
+  await this.myProductRepository.update({ productNo }, updateFields);
+
+  return {
+    message: 'Product updated successfully',
+    product_no: productNo,
+    updated_fields: updateFields,
+  };
+  }
+
+  /*
+  * 제품 삭제
+  */
+  async deleteMyProduct(productNo: string): Promise<{ message: string; product_no: string }> {
+
+    const product = await this.myProductRepository.findOne({ where: { productNo } });
+    if (!product) {
+      throw new NotFoundException(`Product with productNo ${productNo} not found.`);
+    }
+
+    await this.myProductRepository.delete({ productNo });
+
+    return {
+      message: 'Product deleted successfully',
+      product_no: productNo,
+    };
+  }
+
+  /**
+   * 제품 메모 업데이트
+   */
+  async updateMemo(productNo: string, memo: string): Promise<Product> {
+
+    this.validateMemoLength(memo);
+
+    const product = await this.myProductRepository.findOne({ where: { productNo } });
+
+    if (!product) {
+      throw new NotFoundException(`Product with productNo: ${productNo} not found`);
+    }
+
+    product.memo = memo;
+    product.updtDtm = new Date();
+
+    return await this.myProductRepository.save(product);
+  }
+
+  // 메모 길이 검증 (200자 초과 시 예외 발생)
+  private validateMemoLength(memo: string): void {
+    if (memo.length > 200) {
+      throw new BadRequestException('메모의 최대 길이는 200자입니다.');
+    }
+  }
+
+
 }

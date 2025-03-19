@@ -26,6 +26,12 @@ totalPrice: number;
 @PrimaryColumn({name: 'COFFEE_PRICE', type: 'int'})
 coffeePrice: number;
 
+@Column({name: 'memo', type: 'varchar', length:200, nullable: true})
+memo: string;
+
+@PrimaryColumn({name: 'BUY_DTM', type: 'datetime',default: () => 'CURRENT_TIMESTAMP' })
+buyDtm: Date;
+
 @PrimaryColumn({name: 'INST_DTM', type: 'datetime',default: () => 'CURRENT_TIMESTAMP' })
 instDtm: Date;
 
