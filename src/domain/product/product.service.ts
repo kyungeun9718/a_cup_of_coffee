@@ -140,9 +140,9 @@ export class ProductService {
 
       return {
         memberNo,
-        shapeNo: shape?.productNo || '',
-        colorNo: color?.productNo || '',
-        faceNo: face?.productNo || '',
+        shapeNo: shape?.shapeNo || '',
+        colorNo: color?.colorNo || '',
+        faceNo: face?.faceNo || '',
       };
     });
   }

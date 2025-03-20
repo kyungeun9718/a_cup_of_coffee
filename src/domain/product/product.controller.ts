@@ -9,12 +9,12 @@ export class ProductController {
   constructor(private readonly productService: ProductService) { }
 
   @Get('optimal/:deviceToken')
-  @ApiOperation({ summary: '새로운 제품 모양,색깔,표정 전달', description: '캐릭터의 모양, 색깔, 표정을 랜덤으로 값 전달합니다.' })
+  @ApiOperation({ summary: '모양,색깔,표정 랜덤 값 전달', description: '등록되어있지 않은 값을 랜덤으로 전달합니다.' })
   async getOptimalProduct(@Param('deviceToken') deviceToken: string) {
     return await this.productService.findOptimalProduct(deviceToken);
   }
   @Post('insertMyProduct')
-  @ApiOperation({ summary: '새로운 제품 추가', description: 'TB_MY_PRODUCT에 새 제품을 추가합니다.' })
+  @ApiOperation({ summary: '새로운 제품 추가', description: 'INSERT INTO TB_MY_PRODUCT' })
   @ApiResponse({ status: 201, description: '성공적으로 제품이 추가됨' })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터' })
   async insertMyProduct(@Body() createProductDto: CreateProductDto) {
@@ -29,7 +29,7 @@ export class ProductController {
     );
   }
   @Get('getProductsByMemberNo')
-  @ApiOperation({ summary: '회원 제품 조회', description: 'TB_MY_PRODUCT에서 특정 회원의 제품을 조회합니다.' })
+  @ApiOperation({ summary: '회원 제품 조회', description: 'SELECT * FROM TB_MY_PRODUCT' })
   @ApiQuery({ name: 'memberNo', required: true, description: '회원 번호' })
   @ApiQuery({ name: 'includeCompleted', required: false, description: '완료된 제품 포함 여부 (기본값: false)' })
   @ApiQuery({ name: 'searchTerm', required: false, description: '검색' })
@@ -40,9 +40,9 @@ export class ProductController {
       example: [
         {
           product_no: '20250310153000',
-          shape_no: 'CIRC001',
-          color_no: '000000',
-          face_no: 'BASE001',
+          shape_no: 'round_158px',
+          color_no: 'E99024',
+          face_no: 'face_06_60px',
           product_name: '노트북',
           cup: 5,
           total_cup: 10,
@@ -61,7 +61,7 @@ export class ProductController {
   }
 
   @Get('getProductNo/:productNo')
-  @ApiOperation({ summary: '제품 조회', description: 'product_no를 전달 받아 제품 정보를 조회합니다.' })
+  @ApiOperation({ summary: '제품 조회', description: 'SELECT * FROM TB_MY_PRODUCT WHERE PRODUCT_NO' })
   @ApiParam({ name: 'productNo', required: true })
   @ApiResponse({
     status: 200,
@@ -81,15 +81,15 @@ export class ProductController {
   }
 
   @Get('randomProduct')
-  @ApiOperation({ summary: '랜덤 제품 모양, 색, 표정 조회', description: '랜덤한 shape_no, color_no, face_no를 반환합니다.' })
+  @ApiOperation({ summary: '모양,색깔,표정 랜덤 값 전달', description: '등록여부와 상관없이 값을 랜덤으로 전달합니다.' })
   @ApiResponse({
     status: 200,
     description: '성공',
     schema: {
       example: {
-        shape_no: 'CIRC001',
-        color_no: '000000',
-        face_no: 'BASE001',
+        shape_no: 'round_158px',
+        color_no: 'E99024',
+        face_no: 'face_06_60px',
       },
     },
   })
@@ -103,10 +103,10 @@ export class ProductController {
     schema: {
       type: 'object',
       properties: {
-        product_no: { type: 'string', example: '20250309144242' },
-        shape_no: { type: 'string', example: 'CIRC001' },
-        face_no: { type: 'string', example: 'BASE001' },
-        color_no: { type: 'string', example: '000000' },
+        product_no: { type: 'string', example: '20250320181049' },
+        shape_no: { type: 'string', example: 'round_158px' },
+        face_no: { type: 'string', example: 'face_06_60px' },
+        color_no: { type: 'string', example: 'E99024' },
         product_name: { type: 'string', example: '맥북 프로' },
         total_price: { type: 'number', example: 6000 },
         buy_dtm: { type: 'string', format: 'date', example: '2025-03-19' },
@@ -119,11 +119,11 @@ export class ProductController {
     schema: {
       example: {
         message: 'Product updated successfully',
-        product_no: '20250309144242',
+        product_no: '20250320181049',
         updated_fields: {
-          shape_no: 'CIRC001',
-          face_no: 'BASE001',
-          color_no: '000000',
+          shape_no: 'round_158px',
+          face_no: 'face_06_60px',
+          color_no: 'E99024',
           product_name: '맥북 프로',
           total_price: 6000,
           buy_dtm: '2025-03-19',
@@ -153,7 +153,7 @@ export class ProductController {
   }
 
   @Post('deleteMyProduct')
-  @ApiOperation({ summary: '제품 삭제'})
+  @ApiOperation({ summary: '내 제품 삭제'})
   @ApiBody({
     schema: {
       type: 'object',
@@ -167,8 +167,8 @@ export class ProductController {
     description: '성공',
     schema: {
       example: {
-        message: 'Product deleted successfully',
-        product_no: '20250309144242',
+        message: '삭제 성공',
+        product_no: '20250320181049',
       },
     },
   })
@@ -184,7 +184,7 @@ export class ProductController {
     schema: {
       type: 'object',
       properties: {
-        productNo: { type: 'string', example: '20250310153000' },
+        productNo: { type: 'string', example: '20250320181049' },
         memo: { type: 'string', example: '내가 만든 쿠키' },
       },
     },
@@ -194,7 +194,7 @@ export class ProductController {
     description: '메모 수정 성공',
     schema: {
       example: {
-        productNo: '20250310153000',
+        productNo: '20250320181049',
         memo: '내가 만든 쿠키',
         updtDtm: '2025-03-18T12:00:00.000Z',
       },
@@ -236,10 +236,10 @@ export class ProductController {
     description: '성공',
     schema: {
       example: {
-        product_no: '20250309144242',
-        shape_no: 'CIRC001',
-        color_no: '000000',
-        face_no: 'BASE001',
+        product_no: '20250320181049',
+        shape_no: 'round_158px',
+        color_no: 'E99024',
+        face_no: 'face_06_60px',
         product_name: '맥북 프로',
         total_price: 6000,
         coffee_price: 1000,
