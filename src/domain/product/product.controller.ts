@@ -76,7 +76,7 @@ export class ProductController {
       },
     },
   })
-  async getProductDetails(@Param('productNo') productNo: string) {
+  async getProductNo(@Param('productNo') productNo: string) {
     return await this.productService.getProductNo(productNo);
   }
 
@@ -225,6 +225,34 @@ export class ProductController {
   async updateMemo(@Body() updateMemoDto: { productNo: string; memo: string }) {
     const { productNo, memo } = updateMemoDto;
     return await this.productService.updateMemo(productNo, memo);
+  }
+
+  @Get('details/:productNo')
+  @ApiOperation({
+    summary: '제품 상세 조회',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    schema: {
+      example: {
+        product_no: '20250309144242',
+        shape_no: 'CIRC001',
+        color_no: '000000',
+        face_no: 'BASE001',
+        product_name: '맥북 프로',
+        total_price: 6000,
+        coffee_price: 1000,
+        buy_dtm: '2025-03-19',
+        memo: '메모메모메모',
+        cup: 3.4,
+        total_cup: 6,
+        together_time: '5일 2시간 48분 22초'
+      },
+    },
+  })
+  async getProductDetails(@Param('productNo') productNo: string) {
+    return await this.productService.getProductDetails(productNo);
   }
 
 }

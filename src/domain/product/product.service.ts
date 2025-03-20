@@ -449,5 +449,42 @@ async updateMyProductDetail(
     }
   }
 
+  /*
+  * 제품 상세
+  */
+  async getProductDetails(productNo: string): Promise<any> {
+    const product = await this.myProductRepository.findOne({ where: { productNo } });
+    if (!product) {
+      throw new NotFoundException(`Product with productNo ${productNo} not found.`);
+    }
 
+    const cup = this.calculateCurrentCup(product);
+    const totalCup = this.calculateTotalCup(product);
+    const togetherTime = this.calculateTogetherTime(product.buyDtm);
+
+    return {
+      product_no: product.productNo,
+      shape_no: product.shapeNo,
+      color_no: product.colorNo,
+      face_no: product.faceNo,
+      product_name: product.productName,
+      total_price: product.totalPrice,
+      coffee_price: product.coffeePrice,
+      buy_dtm: product.buyDtm.toISOString().split('T')[0], // YYYY-MM-DD 형식
+      memo: product.memo || '',
+      cup : cup,
+      total_cup: totalCup,
+      together_time: togetherTime,
+    };
+  }
+
+  private calculateTogetherTime(buyDtm: Date): string {
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - new Date(buyDtm).getTime()) / 1000);
+    const days = Math.floor(diff / (60 * 60 * 24));
+    const hours = Math.floor((diff % (60 * 60 * 24)) / (60 * 60));
+    const minutes = Math.floor((diff % (60 * 60)) / 60);
+    const seconds = diff % 60;
+    return `${days}일 ${hours}시간 ${minutes}분 ${seconds}초`;
+  }
 }

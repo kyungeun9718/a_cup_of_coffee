@@ -7,10 +7,11 @@ import { Member } from '.././member/entities/member.entity';
 import { ProductShape } from './entities/product-shape.entity';
 import { ProductColor } from './entities/product-color.entity';
 import { ProductFace } from './entities/product-face.entity';
+import { ProductGateway } from '.././productGateway';
 
 @Module({
   controllers: [ProductController],
-  providers: [ProductService],
+  providers: [ProductService, ProductGateway],
   imports: [TypeOrmModule.forFeature([Product, ProductShape,ProductColor,ProductFace,Member])],
 })
 export class ProductModule {}
