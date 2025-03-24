@@ -525,56 +525,92 @@ async getProductListByMember(
 }
 
   // 기록함 > 완료된 제품 목록 상세 조회
-  async getCompletedProductsByMember(
-    memberNo: string,
-    orderBy: 'buy_dtm' | 'product_name' = 'buy_dtm',
-    order: 'ASC' | 'DESC' = 'ASC'
-  ): Promise<any[]> {
-    if (!memberNo) {
-      throw new BadRequestException('memberNo는 필수입니다.');
+  async getCompletedProductsDetail(
+      memberNo: string,
+      orderBy: 'buy_dtm' | 'product_name' = 'buy_dtm',
+      order: 'ASC' | 'DESC' = 'ASC'
+    ): Promise<any[]> {
+      if (!memberNo) {
+        throw new BadRequestException('memberNo는 필수입니다.');
+      }
+    
+      const products = await this.myProductRepository.find({ where: { memberNo } });
+    
+      const completed = products
+        .map((product) => this.mapCompletedProduct(product))
+        .filter(Boolean);
+    
+      return this.sortProducts(completed, orderBy, order);
     }
 
-    const products = await this.myProductRepository.find({ where: { memberNo } });
-
+    //기록함 > 완성된 제품 목록 조회
+    async getCompletedProductsSummary(
+      memberNo: string,
+      orderBy: 'buy_dtm' | 'product_name' = 'buy_dtm',
+      order: 'ASC' | 'DESC' = 'ASC'
+    ): Promise<any[]> {
+      if (!memberNo) {
+        throw new BadRequestException('memberNo는 필수입니다.');
+      }
     
-    const completed = products
-      .map((product) => {
-        const cup = this.calculateCurrentCup(product);
-        const totalCup = this.calculateTotalCup(product);
-        if (!this.isCompleted(cup, totalCup)) return null;
-
-        const endDate = new Date(product.buyDtm);
-        endDate.setDate(endDate.getDate() + totalCup);
-
-        const formattedBuyDtm = new Date(product.buyDtm)
+      const products = await this.myProductRepository.find({ where: { memberNo } });
+    
+      const completed = products
+        .map((product) => this.mapCompletedProduct(product))
+        .filter(Boolean)
+        .map(({ product_no, shape_no, color_no, face_no, cup, product_name, buy_dtm }) => ({
+          product_no,
+          shape_no,
+          color_no,
+          face_no,
+          cup,
+          product_name,
+          buy_dtm,
+        }));
+    
+      return this.sortProducts(completed, orderBy, order);
+    }
+    
+    
+    //완료된 제품 조회
+    private mapCompletedProduct(product: Product) {
+      const cup = this.calculateCurrentCup(product);
+      const totalCup = this.calculateTotalCup(product);
+      const isCompleted = this.isCompleted(cup, totalCup);
+    
+      if (!isCompleted) return null;
+    
+      const endDate = new Date(product.buyDtm);
+      endDate.setDate(endDate.getDate() + totalCup);
+    
+      const formattedBuyDtm = new Date(product.buyDtm)
         .toISOString()
         .slice(0, 10)
-        .replace(/-/g, '/'); 
+        .replace(/-/g, '/');
+    
+      return {
+        product_no: product.productNo,
+        shape_no: product.shapeNo,
+        color_no: product.colorNo,
+        face_no: product.faceNo,
+        cup,
+        total_price: product.totalPrice,
+        end_dt: endDate.toISOString().slice(0, 10).replace(/-/g, '/'),
+        together_time: `${totalCup}`,
+        buy_dtm: formattedBuyDtm,
+        product_name: product.productName,
+      };
+    }
 
-        return {
-          product_no: product.productNo,
-          shape_no: product.shapeNo,
-          color_no: product.colorNo,
-          face_no: product.faceNo,
-          cup,
-          total_price: product.totalPrice,
-          end_dt: endDate.toISOString().slice(0, 10).replace(/-/g, '/'), // yyyy/mm/dd
-          together_time: `${totalCup}`,
-          buy_dtm: formattedBuyDtm,
-          product_name: product.productName,
-        };
-      })
-      .filter(Boolean);
-
-    // 동적 정렬
-    return completed.sort((a, b) => {
-      const fieldA = a[orderBy];
-      const fieldB = b[orderBy];
-
-      if (fieldA < fieldB) return order === 'ASC' ? -1 : 1;
-      if (fieldA > fieldB) return order === 'ASC' ? 1 : -1;
-      return 0;
-    });
-  }
+    //정렬
+    private sortProducts(list: any[], orderBy: string, order: 'ASC' | 'DESC') {
+      return list.sort((a, b) => {
+        const valA = a[orderBy] instanceof Date ? a[orderBy].getTime() : a[orderBy];
+        const valB = b[orderBy] instanceof Date ? b[orderBy].getTime() : b[orderBy];
+    
+        return order === 'ASC' ? valA - valB : valB - valA;
+      });
+    }
+    
 
 }

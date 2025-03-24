@@ -295,14 +295,14 @@ export class ProductController {
     },
   })
   
-  async getList(
+  async getProductListByMember(
     @Query('memberNo') memberNo: string,
     @Query('includeCompleted') includeCompleted?: boolean,
   ) {
     return this.productService.getProductListByMember(memberNo, includeCompleted);
   }
 
-  @Get('getRecordDetailList')
+  @Get('getCompletedProductsDetail')
   @ApiOperation({
     summary: '기록함 > 제품 상세 리스트',
     description: `완료된 제품 상세 리스트`
@@ -330,13 +330,68 @@ export class ProductController {
       ]
     }
   })
-  async getCompletedList(
+  @ApiResponse({
+    status: 400,
+    description: '쿼리 파라미터가 잘못된 경우',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: '회원번호 오류',
+        error: 'Bad Request',
+      },
+    },
+  })
+  async getCompletedProductsDetail(
     @Query('memberNo') memberNo: string,
     @Query('orderBy') orderBy: 'buy_dtm' | 'product_name' = 'buy_dtm',
     @Query('order') order: 'ASC' | 'DESC' = 'ASC'
   ) {
-    return this.productService.getCompletedProductsByMember(memberNo, orderBy, order);
+    return this.productService.getCompletedProductsDetail(memberNo, orderBy, order);
   }
+
   
+  @Get('getCompletedProductsSummary')
+  @ApiOperation({
+    summary: '기록함 > 제품 리스트',
+    description: `완료된 제품 리스트`
+  })
+  @ApiQuery({ name: 'memberNo', required: true, description: '회원 번호' })
+  @ApiQuery({ name: 'orderBy', required: false, enum: ['buy_dtm', 'product_name'], description: '정렬 기준' })
+  @ApiQuery({ name: 'order', required: false, enum: ['ASC', 'DESC'], description: '정렬 순서' })
+  @ApiResponse({
+    status: 200,
+    description: '조회 성공',
+    schema: {
+      example: [
+        {
+          product_no: '20250320123456',
+          shape_no: 'CIRC001',
+          color_no: '000000',
+          face_no: 'FACE001',
+          cup: 10.0,
+          buy_dtm: "2025/03/01",
+          product_name: "텀블러"
+        }
+      ]
+    }
+  })
+  @ApiResponse({
+    status: 400,
+    description: '쿼리 파라미터가 잘못된 경우',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: '회원번호 오류',
+        error: 'Bad Request',
+      },
+    },
+  })
+  async getCompletedProductsSummary(
+    @Query('memberNo') memberNo: string,
+    @Query('orderBy') orderBy: 'buy_dtm' | 'product_name' = 'buy_dtm',
+    @Query('order') order: 'ASC' | 'DESC' = 'ASC'
+  ) {
+    return this.productService.getCompletedProductsSummary(memberNo, orderBy, order);
+  }
 
 }
