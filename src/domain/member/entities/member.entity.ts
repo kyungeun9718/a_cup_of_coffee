@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryColumn } from "typeorm";
 
 @Entity({'name':'TB_MEMBER'})
 export class Member {
-@PrimaryColumn({name: 'DEVICE_TOKEN', type: 'varchar',length:20})
+@PrimaryColumn({name: 'DEVICE_TOKEN', type: 'varchar',length:255})
 deviceToken: string;
 
 @PrimaryColumn({name: 'MEMBER_NO', type: 'varchar',length:20})

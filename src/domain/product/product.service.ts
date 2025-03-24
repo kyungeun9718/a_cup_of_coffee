@@ -524,4 +524,52 @@ async getProductListByMember(
   }));
 }
 
+  // 기록함 > 완료된 제품 목록 상세 조회
+  async getCompletedProductsByMember(
+    memberNo: string,
+    orderBy: 'buy_dtm' | 'product_name' = 'buy_dtm',
+    order: 'ASC' | 'DESC' = 'ASC'
+  ): Promise<any[]> {
+    if (!memberNo) {
+      throw new BadRequestException('memberNo는 필수입니다.');
+    }
+
+    const products = await this.myProductRepository.find({ where: { memberNo } });
+
+    
+    const completed = products
+      .map((product) => {
+        const cup = this.calculateCurrentCup(product);
+        const totalCup = this.calculateTotalCup(product);
+        if (!this.isCompleted(cup, totalCup)) return null;
+
+        const endDate = new Date(product.buyDtm);
+        endDate.setDate(endDate.getDate() + totalCup);
+
+        return {
+          product_no: product.productNo,
+          shape_no: product.shapeNo,
+          color_no: product.colorNo,
+          face_no: product.faceNo,
+          cup,
+          total_price: product.totalPrice,
+          end_dt: endDate.toISOString().slice(0, 10).replace(/-/g, '/'), // yyyy/mm/dd
+          together_time: `${totalCup}`,
+          buy_dtm: product.buyDtm,
+          product_name: product.productName,
+        };
+      })
+      .filter(Boolean);
+
+    // 동적 정렬
+    return completed.sort((a, b) => {
+      const fieldA = a[orderBy];
+      const fieldB = b[orderBy];
+
+      if (fieldA < fieldB) return order === 'ASC' ? -1 : 1;
+      if (fieldA > fieldB) return order === 'ASC' ? 1 : -1;
+      return 0;
+    });
+  }
+
 }
