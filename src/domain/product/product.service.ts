@@ -9,6 +9,7 @@ import { Brackets, EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThanOrEqual } from 'typeorm';
 import { getChosung } from '../utils/chosungUtil';
+import { calculateProductSize } from '../utils/product-size';
 
 @Injectable()
 export class ProductService {
@@ -487,4 +488,40 @@ async updateMyProductDetail(
     const seconds = diff % 60;
     return `${days}일 ${hours}시간 ${minutes}분 ${seconds}초`;
   }
+
+async getProductListByMember(
+  memberNo: string,
+  includeCompleted : boolean = false
+): Promise<any[]> {
+  const now = new Date();
+
+  if (!memberNo) {
+    throw new BadRequestException('memberNo는 필수입니다.');
+  }
+  
+  const products = await this.myProductRepository.find({
+    where: { memberNo },
+  });
+
+  return products
+  .map((product) => {
+    const cup = this.calculateCurrentCup(product);
+    const totalCup = this.calculateTotalCup(product);
+    const completed = this.isCompleted(cup, totalCup);
+
+    return {
+      product,
+      completed,
+    };
+  })
+  .filter(({ completed }) => includeCompleted || !completed)
+  .map(({ product }) => ({
+    product_no: product.productNo,
+    shape_no: product.shapeNo,
+    color_no: product.colorNo,
+    face_no: product.faceNo,
+    size: calculateProductSize(product.totalPrice),
+  }));
+}
+
 }

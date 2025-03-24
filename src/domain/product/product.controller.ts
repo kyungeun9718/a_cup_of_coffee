@@ -255,4 +255,52 @@ export class ProductController {
     return await this.productService.getProductDetails(productNo);
   }
 
+  @Get('getProductListByMember')
+  @ApiOperation({
+    summary: '메인API > 내 제품 리스트 조회',
+    description: `조회하였을 때 완료된 값은 제외됩니다. 
+  - size 0 : 10만원 이하 
+  - size 1 : 10만원~100만원 
+  - size 2 : 100만원 이상`,
+  })
+  @ApiQuery({ name: 'memberNo', required: true, description: '회원 번호' })
+  @ApiQuery({ name: 'includeCompleted', required: false, type: Boolean, description:
+    '완료된 제품 포함 여부. true(완료포함), false(완료미포함)  / null값 허용이며, null일 경우 false로 전달' })
+
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    schema: {
+      example: [
+        {
+          product_no: '20250320181049',
+          shape_no: 'round_158px',
+          color_no: 'E99024',
+          face_no: 'face_06_60px',
+          size: 1,
+        },
+      ],
+    },
+  })
+  
+  @ApiResponse({
+    status: 400,
+    description: '쿼리 파라미터가 잘못된 경우',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: '회원번호 오류',
+        error: 'Bad Request',
+      },
+    },
+  })
+  
+  async getList(
+    @Query('memberNo') memberNo: string,
+    @Query('includeCompleted') includeCompleted?: boolean,
+  ) {
+    return this.productService.getProductListByMember(memberNo, includeCompleted);
+  }
+  
+
 }
