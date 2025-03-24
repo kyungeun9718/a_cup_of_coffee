@@ -546,6 +546,11 @@ async getProductListByMember(
         const endDate = new Date(product.buyDtm);
         endDate.setDate(endDate.getDate() + totalCup);
 
+        const formattedBuyDtm = new Date(product.buyDtm)
+        .toISOString()
+        .slice(0, 10)
+        .replace(/-/g, '/'); 
+
         return {
           product_no: product.productNo,
           shape_no: product.shapeNo,
@@ -555,7 +560,7 @@ async getProductListByMember(
           total_price: product.totalPrice,
           end_dt: endDate.toISOString().slice(0, 10).replace(/-/g, '/'), // yyyy/mm/dd
           together_time: `${totalCup}`,
-          buy_dtm: product.buyDtm,
+          buy_dtm: formattedBuyDtm,
           product_name: product.productName,
         };
       })
