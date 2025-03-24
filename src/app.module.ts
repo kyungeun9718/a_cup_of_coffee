@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 // import { ormConfig } from './orm.config';
+import { MemberModule } from './domain/member/member.module';
 import { ProductModule } from './domain/product/product.module';
 import { SwaggerDBModule } from './domain/swaggerDB/swaggerDB.module';
 import { ConfigModule } from '@nestjs/config'
@@ -33,7 +34,7 @@ import { SwaggerModule } from '@nestjs/swagger';
       synchronize: true,
       entities: [Product, ProductFace, ProductShape, ProductColor, Member],}),
 //    TypeOrmModule.forRootAsync({ useFactory: ormConfig }),
-    ProductModule,SwaggerDBModule,
+    ProductModule,MemberModule,SwaggerDBModule,
   ],
   controllers: [AppController],
   providers: [AppService],
