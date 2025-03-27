@@ -45,5 +45,30 @@ export class MemberService {
     return { message: `탈퇴되셨습니다.` };
   }
   
+    // 유효성 검사 메소드
+    private validateMemberName(name: string) {
+      const trimmed = name.trim();
+      if (trimmed.length < 1) {
+        throw new BadRequestException('최소 1자 이상이어야 합니다.');
+      }
+    
+      if (trimmed.length > 20) {
+        throw new BadRequestException('최대 20자까지 입력할 수 있습니다.');
+      }
+    }
+  
+    // memberName 업데이트 메소드
+    async updateMemberName(memberNo: string, newName: string): Promise<Member> {
+      this.validateMemberName(newName);
+  
+      const member = await this.memberRepository.findOne({ where: { memberNo } });
+      if (!member) {
+        throw new NotFoundException('해당 회원을 찾을 수 없습니다.');
+      }
+  
+      member.memberName = newName;
+      member.updtDtm = new Date();
+      return await this.memberRepository.save(member);
+    }
 
 }

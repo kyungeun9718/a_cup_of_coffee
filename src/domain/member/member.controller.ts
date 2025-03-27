@@ -37,5 +37,24 @@ export class MemberController {
     return this.memberService.deleteMember(deviceToken);
   }
   
+  @Patch('updateName')
+  @ApiOperation({ summary: '회원 이름 수정', description: '회원가입 시 회원의 이름을 입력받습니다.' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        memberNo: { type: 'string', example: '20250320180759000000', description: '회원 번호' },
+        memberName: { type: 'string', example: '홍길동', description: '회원 이름' },
+      },
+      required: ['memberNo', 'memberName'],
+    },
+  })
+  @ApiResponse({ status: 200, description: '성공' })
+  @ApiResponse({ status: 400, description: '입력값 유효성 실패' })
+  @ApiResponse({ status: 404, description: '해당 회원을 찾을 수 없음' })
+  async updateMemberName(@Body() body: any) {
+    return this.memberService.updateMemberName(body.memberNo, body.memberName);
+  }
+  
 
 }

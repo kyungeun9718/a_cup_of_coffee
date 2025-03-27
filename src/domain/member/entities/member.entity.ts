@@ -8,6 +8,9 @@ deviceToken: string;
 @PrimaryColumn({name: 'MEMBER_NO', type: 'varchar',length:20})
 memberNo: string;
 
+@Column({name: 'MEMBER_NAME', type: 'varchar',length:20, nullable: true})
+memberName: string;
+
 @PrimaryColumn({name: 'JOIN_DTM', type: 'datetime',default: () => 'CURRENT_TIMESTAMP' })
 joinDtm: Date;
 
