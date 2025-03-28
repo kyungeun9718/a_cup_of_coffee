@@ -20,9 +20,6 @@ export class ProductController {
   async insertMyProduct(@Body() createProductDto: CreateProductDto) {
     return await this.productService.insertMyProduct(
       createProductDto.memberNo,
-      createProductDto.shapeNo,
-      createProductDto.colorNo,
-      createProductDto.faceNo,
       createProductDto.productName,
       createProductDto.totalPrice,
       createProductDto.coffeePrice,
@@ -109,8 +106,8 @@ export class ProductController {
       type: 'object',
       properties: {
         product_no: { type: 'string', example: '20250320181049' },
-        shape_no: { type: 'string', example: 'round_158px' },
-        face_no: { type: 'string', example: 'face_06_60px' },
+        shape_no: { type: 'string', example: 'round_66px' },
+        face_no: { type: 'string', example: 'face_06_66px' },
         color_no: { type: 'string', example: 'E99024' },
         product_name: { type: 'string', example: '맥북 프로' },
         total_price: { type: 'number', example: 6000 },
@@ -126,8 +123,8 @@ export class ProductController {
         message: 'Product updated successfully',
         product_no: '20250320181049',
         updated_fields: {
-          shape_no: 'round_158px',
-          face_no: 'face_06_60px',
+          shape_no: 'round_66px',
+          face_no: 'face_06_66px',
           color_no: 'E99024',
           product_name: '맥북 프로',
           total_price: 6000,

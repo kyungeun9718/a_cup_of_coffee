@@ -15,3 +15,15 @@ export enum ProductSize {
     return ProductSize.LARGE;
   }
   
+  export function getSizeValueFromProductSize(size: ProductSize): string {
+    switch (size) {
+      case ProductSize.SMALL: return '66';
+      case ProductSize.MEDIUM: return '111';
+      case ProductSize.LARGE: return '158';
+    }
+  }
+
+  export function updatePxValue(original: string, newSize: string): string {
+    return original.replace(/(\d+)px$/, `${newSize}px`);
+  }
+  

@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryColumn } from "typeorm";
+import { Entity, Column, PrimaryColumn, IntegerType } from "typeorm";
 
 @Entity({'name':'TB_PRODUCT_FACE'})
 export class ProductFace {
@@ -7,6 +7,9 @@ faceNo: string;
 
 @PrimaryColumn({name: 'FACE_NAME', type: 'varchar',length:20})
 faceName: string;
+
+@PrimaryColumn({ name: 'SIZE', type: 'varchar', length: 20 })
+size: string;
 
 @PrimaryColumn({name: 'INST_DTM', type: 'datetime',default: () => 'CURRENT_TIMESTAMP' })
 instDtm: Date;
