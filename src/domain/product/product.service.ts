@@ -320,19 +320,28 @@ export class ProductService {
     const cup = this.calculateCurrentCup(product);
     const totalCup = this.calculateTotalCup(product);
 
+    //4. end_dtm
+    const formattedEndDtm = this.calculateEndDate(product.buyDtm, totalCup);
+
     return {
-      productNo: product.productNo,
+      product_no: product.productNo,
       product_name: product.productName,
       shape_no : product.shapeNo,
       color_no : product.colorNo,
       face_no : product.faceNo,
       total_price : product.totalPrice,
       buy_dtm: formattedInstDtm,
-      today: formattedToday,
+      end_dtm: formattedEndDtm,
       cup,
       total_cup: totalCup,
     };
 
+  }
+
+  private calculateEndDate(buyDtm: Date, totalCup: number): string {
+    const endDate = new Date(buyDtm);
+    endDate.setDate(endDate.getDate() + totalCup);
+    return this.formatDate(endDate);
   }
 
   private async getProductByNo(productNo: string): Promise<Product> {
@@ -462,6 +471,7 @@ async updateMyProductDetail(
     const cup = this.calculateCurrentCup(product);
     const totalCup = this.calculateTotalCup(product);
     const togetherTime = this.calculateTogetherTime(product.buyDtm);
+    const endDtm = this.calculateEndDate(product.buyDtm, totalCup);
 
     return {
       product_no: product.productNo,
@@ -471,7 +481,10 @@ async updateMyProductDetail(
       product_name: product.productName,
       total_price: product.totalPrice,
       coffee_price: product.coffeePrice,
-      buy_dtm: product.buyDtm.toISOString().split('T')[0], // YYYY-MM-DD 형식
+      buy_dtm: product.buyDtm
+      ? `${product.buyDtm.getFullYear()}/${(product.buyDtm.getMonth() + 1).toString().padStart(2, '0')}/${product.buyDtm.getDate().toString().padStart(2, '0')}`
+      : '',
+      end_dtm: endDtm,
       memo: product.memo || '',
       cup : cup,
       total_cup: totalCup,
