@@ -17,7 +17,7 @@ export enum ProductSize {
   
   export function getSizeValueFromProductSize(size: ProductSize): string {
     switch (size) {
-      case ProductSize.SMALL: return '66';
+      case ProductSize.SMALL: return '60';
       case ProductSize.MEDIUM: return '111';
       case ProductSize.LARGE: return '158';
     }
