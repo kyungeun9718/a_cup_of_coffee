@@ -12,4 +12,7 @@ export class CreateProductDto {
   
     @ApiProperty({ example: 3000, description: '커피 가격' })
     coffeePrice: number;
+
+    @ApiProperty({ required: false })
+    shapeNo?: string;
 }

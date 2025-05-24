@@ -26,6 +26,7 @@ export class ProductController {
       createProductDto.productName,
       createProductDto.totalPrice,
       createProductDto.coffeePrice,
+      createProductDto.shapeNo,
     );
 
     // 문자열이면 에러 메시지로 간주

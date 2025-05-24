@@ -151,16 +151,9 @@ export class ProductService {
  * 내 제품 등록
  */
   async insertMyProduct(
-    memberNo: string,
-    productName: string,
-    totalPrice: number,
-    coffeePrice: number,
+memberNo: string, productName: string, totalPrice: number, coffeePrice: number, preferredShapeNo: string,
   ): Promise<Product | string > {
     this.validatePrice(totalPrice, coffeePrice);
-  
-    console.log('name '+ productName);
-    console.log('name len'+ productName.length);
-
     
     if(!productName || productName.trim().length == 0){
       return '제품명을 입력하세요';
@@ -173,8 +166,8 @@ export class ProductService {
     await this.validateMemberNo(memberNo);
     
     return await this.myProductRepository.manager.transaction(async (manager) => {
-      const shape = await this.getEntityByMemberAndSize(manager, memberNo, totalPrice, ProductShape, 'shape', 'SHAPE_NO');
-      const face = await this.getEntityByMemberAndSize(manager, memberNo, totalPrice, ProductFace, 'face', 'FACE_NO');
+      const shape = await this.getEntityByMemberAndSizeOfShape(manager, memberNo, totalPrice, ProductShape, 'shape', 'SHAPE_NO',preferredShapeNo);
+      const face = await this.getEntityByMemberAndSizeOfColor(manager, memberNo, totalPrice, ProductFace, 'face', 'FACE_NO');
       const color = await this.getColorByMember(manager, memberNo);
   
       const newProduct = this.myProductRepository.create({
@@ -224,7 +217,7 @@ export class ProductService {
   }
   
   //size값 나타내기
-  private async getEntityByMemberAndSize<T>(
+  private async getEntityByMemberAndSizeOfColor<T>(
     manager: EntityManager,
     memberNo: string,
     totalPrice: number,
@@ -276,7 +269,45 @@ export class ProductService {
       .orderBy('RAND()')
       .getOne();
   }
+    //size값 나타내기
+    private async getEntityByMemberAndSizeOfShape<T>(
+      manager: EntityManager,
+      memberNo: string,
+      totalPrice: number,
+      entity: { new (): T },
+      entityAlias: string,
+      columnName: string, // 예: 'SHAPE_NO' or 'FACE_NO'
+      preferredShapeNo?: string,
+    ): Promise<T> {
+      const productSize = calculateProductSize(totalPrice);
+      const sizeValue = getSizeValueFromProductSize(productSize);
+    
+      const myProducts = await this.myProductRepository
+        .createQueryBuilder('product')
+        .select([`product.${columnName}`])
+        .where('product.MEMBER_NO = :memberNo', { memberNo })
+        .getRawMany();
+    
+      const existingNos = myProducts.map((p) => p[columnName]).filter((v) => v !== '');
   
+      console.log(existingNos.length);
+    
+      let result = await manager
+      .createQueryBuilder(entity, entityAlias)
+      .where(`${entityAlias}.${columnName.toLowerCase()} IN (:...existingNos)`, { existingNos })
+      .andWhere(`${entityAlias}.size = :size`, { size: sizeValue })
+      .orderBy('RAND()')
+      .getOne();
+    
+      if (result) return result;
+    
+    
+      return await manager
+        .createQueryBuilder(entity, entityAlias)
+        .where(`${entityAlias}.size = :size`, { size: sizeValue })
+        .orderBy('RAND()')
+        .getOne();
+    }
 
   
 
