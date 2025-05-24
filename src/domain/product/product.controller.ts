@@ -337,7 +337,7 @@ export class ProductController {
           face_no: 'FACE001',
           cup: 10.0,
           total_price: 10000,
-          end_dt: '2025/03/10',
+          end_dtm: '2025/03/10',
           together_time: '10',
           buy_dtm: "2025/03/01",
           product_name: "텀블러"

@@ -749,7 +749,7 @@ async getProductListByMember(
         face_no: product.faceNo,
         cup,
         total_price: product.totalPrice,
-        end_dt: endDate.toISOString().slice(0, 10).replace(/-/g, '/'),
+        end_dtm: endDate.toISOString().slice(0, 10).replace(/-/g, '/'),
         together_time: `${totalCup}`,
         buy_dtm: formattedBuyDtm,
         product_name: product.productName,
