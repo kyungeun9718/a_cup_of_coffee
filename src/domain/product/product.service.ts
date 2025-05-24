@@ -233,14 +233,30 @@ export class ProductService {
       .getRawMany();
   
     const existingNos = myProducts.map((p) => p[columnName]).filter((v) => v !== '');
+
+    console.log(existingNos.length);
   
     if (existingNos.length > 0) {
-      const result = await manager
+      let result = await manager
         .createQueryBuilder(entity, entityAlias)
-        .where(`${entityAlias}.${columnName.toLowerCase()} IN (:...existingNos)`, { existingNos })
+        .where(`${entityAlias}.${columnName.toLowerCase()} NOT IN (:...existingNos)`, { existingNos })
         .andWhere(`${entityAlias}.size = :size`, { size: sizeValue })
         .orderBy('RAND()')
         .getOne();
+
+        if (!result) {
+          result = await manager
+            .createQueryBuilder(entity, entityAlias)
+            .where(
+              `${entityAlias}.${columnName.toLowerCase()} IN (:...existingNos)`,
+              { existingNos },
+            )
+            .andWhere(`${entityAlias}.size = :size`, { size: sizeValue })
+            .orderBy('RAND()')
+            .limit(1)
+            .getOne();
+        }
+        
   
       if (result) return result;
     }
