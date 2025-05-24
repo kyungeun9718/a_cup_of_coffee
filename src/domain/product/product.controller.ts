@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, BadRequestException } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam, ApiBody } from '@nestjs/swagger';
+import { Product } from './entities/product.entity';
 
 @ApiTags('Product')
 @Controller('product')
@@ -17,13 +18,23 @@ export class ProductController {
   @ApiOperation({ summary: '새로운 제품 추가', description: 'INSERT INTO TB_MY_PRODUCT' })
   @ApiResponse({ status: 201, description: '성공적으로 제품이 추가됨' })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터' })
-  async insertMyProduct(@Body() createProductDto: CreateProductDto) {
-    return await this.productService.insertMyProduct(
+  async insertMyProduct(
+    @Body() createProductDto: CreateProductDto,
+  ): Promise<Product> {
+    const result = await this.productService.insertMyProduct(
       createProductDto.memberNo,
       createProductDto.productName,
       createProductDto.totalPrice,
       createProductDto.coffeePrice,
     );
+
+    // 문자열이면 에러 메시지로 간주
+    if (typeof result === 'string') {
+      throw new BadRequestException(result);
+    }
+
+    // 정상 Product 객체 반환 (201 상태)
+    return result;
   }
   @Get('getProductsByMemberNo')
   @ApiOperation({ summary: '회원 제품 조회', description: 'SELECT * FROM TB_MY_PRODUCT' })

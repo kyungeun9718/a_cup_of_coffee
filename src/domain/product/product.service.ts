@@ -155,9 +155,18 @@ export class ProductService {
     productName: string,
     totalPrice: number,
     coffeePrice: number,
-  ): Promise<Product> {
+  ): Promise<Product | string > {
     this.validatePrice(totalPrice, coffeePrice);
   
+    console.log('name '+ productName);
+    console.log('name len'+ productName.length);
+
+    
+    if(!productName || productName.trim().length == 0){
+      return '제품명을 입력하세요';
+    }
+
+    console.log('throw');
     const now = new Date();
     const productNo = now.toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
   
@@ -275,6 +284,10 @@ export class ProductService {
   private validatePrice(totalPrice: number, coffeePrice: number) {
     if (coffeePrice > totalPrice) {
       throw new BadRequestException('커피 가격은 총 가격보다 클 수 없습니다.');
+    }
+
+    if (coffeePrice <= 0 || coffeePrice == null) {
+      throw new BadRequestException('커피 가격을 입력해주세요');
     }
   }
 
