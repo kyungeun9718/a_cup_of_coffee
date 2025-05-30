@@ -750,7 +750,7 @@ async getProductListByMember(
         shape_no: product.shapeNo,
         color_no: product.colorNo,
         face_no: product.faceNo,
-        cup,
+        cup : totalCup,
         total_price: product.totalPrice,
         end_dtm: endDate.toISOString().slice(0, 10).replace(/-/g, '/'),
         together_time: `${totalCup}`,
