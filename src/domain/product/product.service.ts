@@ -158,15 +158,16 @@ memberNo: string, productName: string, totalPrice: number, coffeePrice: number, 
     if(!productName || productName.trim().length == 0){
       return '제품명을 입력하세요';
     }
+    
+    const shapeNoSplit = preferredShapeNo.split('_')[0];
 
-    console.log('throw');
     const now = new Date();
     const productNo = now.toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
   
     await this.validateMemberNo(memberNo);
     
     return await this.myProductRepository.manager.transaction(async (manager) => {
-      const shape = await this.getEntityByMemberAndSizeOfShape(manager, memberNo, totalPrice, ProductShape, 'shape', 'SHAPE_NO',preferredShapeNo);
+      const shape = await this.getEntityByMemberAndSizeOfShape(manager, memberNo, totalPrice, ProductShape, 'shape', 'SHAPE_NO',shapeNoSplit);
       const face = await this.getEntityByMemberAndSizeOfColor(manager, memberNo, totalPrice, ProductFace, 'face', 'FACE_NO');
       const color = await this.getColorByMember(manager, memberNo);
   
@@ -276,7 +277,7 @@ memberNo: string, productName: string, totalPrice: number, coffeePrice: number, 
       totalPrice: number,
       entity: { new (): T },
       entityAlias: string,
-      columnName: string, // 예: 'SHAPE_NO' or 'FACE_NO'
+      columnName: string,
       preferredShapeNo?: string,
     ): Promise<T> {
       const productSize = calculateProductSize(totalPrice);
@@ -289,8 +290,6 @@ memberNo: string, productName: string, totalPrice: number, coffeePrice: number, 
         .getRawMany();
     
       const existingNos = myProducts.map((p) => p[columnName]).filter((v) => v !== '');
-  
-      console.log(existingNos.length);
     
       let result = await manager
       .createQueryBuilder(entity, entityAlias)
