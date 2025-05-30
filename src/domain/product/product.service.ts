@@ -158,7 +158,7 @@ memberNo: string, productName: string, totalPrice: number, coffeePrice: number, 
     if(!productName || productName.trim().length == 0){
       return '제품명을 입력하세요';
     }
-    
+    console.log('전달받은 ShapeNo' + preferredShapeNo);
     const shapeNoSplit = preferredShapeNo.split('_')[0];
 
     const now = new Date();
