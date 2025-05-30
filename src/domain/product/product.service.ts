@@ -612,10 +612,15 @@ async updateMyProductDetail(
       throw new NotFoundException(`Product with productNo ${productNo} not found.`);
     }
 
-    const cup = this.calculateCurrentCup(product);
+    let cup = this.calculateCurrentCup(product);
     const totalCup = this.calculateTotalCup(product);
     const togetherTime = this.calculateTogetherTime(product.buyDtm);
     const endDtm = this.calculateEndDate(product.buyDtm, totalCup);
+    const completed = this.isCompleted(cup, totalCup);
+
+    if(completed == true){
+      cup = totalCup
+    }
 
     return {
       product_no: product.productNo,
