@@ -161,6 +161,9 @@ memberNo: string, productName: string, totalPrice: number, coffeePrice: number, 
     console.log('전달받은 ShapeNo' + preferredShapeNo);
     const shapeNoSplit = preferredShapeNo.split('_')[0];
 
+    console.log('전달받은 shapeNoSplit' + shapeNoSplit);
+
+
     const now = new Date();
     const productNo = now.toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
   
@@ -171,6 +174,8 @@ memberNo: string, productName: string, totalPrice: number, coffeePrice: number, 
       const face = await this.getEntityByMemberAndSizeOfColor(manager, memberNo, totalPrice, ProductFace, 'face', 'FACE_NO');
       const color = await this.getColorByMember(manager, memberNo);
   
+      console.log('전달받은 shape' + shape);
+
       const newProduct = this.myProductRepository.create({
         productNo,
         memberNo,
