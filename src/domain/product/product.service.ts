@@ -298,9 +298,8 @@ memberNo: string, productName: string, totalPrice: number, coffeePrice: number, 
     
       let result = await manager
       .createQueryBuilder(entity, entityAlias)
-      .where(`${entityAlias}.${columnName.toLowerCase()} IN (:...existingNos)`, { existingNos })
+      .where( `${entityAlias}.${columnName.toLowerCase()} LIKE :pattern`, { pattern: `${preferredShapeNo}%` },)
       .andWhere(`${entityAlias}.size = :size`, { size: sizeValue })
-      .orderBy('RAND()')
       .getOne();
     
       if (result) return result;
